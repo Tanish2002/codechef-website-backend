@@ -1,16 +1,16 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	//"strings"
 	"time"
-	"bytes"
-	"github.com/gin-gonic/gin"
 )
 
 type Oauth2 struct {
@@ -33,12 +33,12 @@ func AccessTokenFetch() string {
 	redirect_uri := os.Getenv("REDIRECT_URI")
 
 	payloadJson := map[string]string{
-		"grant_type": "client_credentials",
-		"scope": "public",
-		"client_id": client_id,
+		"grant_type":    "client_credentials",
+		"scope":         "public",
+		"client_id":     client_id,
 		"client_secret": client_secret,
-		"redirect_uri": redirect_uri}
-	payload, err := json.Marshal(payloadJson) 
+		"redirect_uri":  redirect_uri}
+	payload, err := json.Marshal(payloadJson)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -102,9 +102,16 @@ func CodechefRankings(token string) interface{} {
 	json.Unmarshal(body, &result)
 	return result
 }
-var Router * gin.Engine
+
+var Router *gin.Engine
+
 func main() {
 	r := gin.Default()
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET"},
+		AllowCredentials: true,
+	}))
 	r.GET("/", func(c *gin.Context) {
 		token := AccessTokenFetch()
 		jsonRes := CodechefRankings(token)
